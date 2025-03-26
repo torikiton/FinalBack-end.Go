@@ -20,12 +20,12 @@ func main() {
 	dsn := viper.GetString("mysql.dsn")
 
 	dialactor := mysql.Open(dsn)
-	_, err = gorm.Open(dialactor)
+	db, err := gorm.Open(dialactor)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Connected Successfully!!")
 
 	// start web api
-	controller.StartServer()
+	controller.StartServer(db)
 }

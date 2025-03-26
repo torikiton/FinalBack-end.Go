@@ -1,14 +1,19 @@
 package dto
 
-type User struct {
-	FirstName   string  `json:"fname"`
-	LastName    string  `json:"lname"`
-	Email       string  `json:"email"`
-	PostAddress Address `json:"Address"`
-}
-type Address struct {
-	HouseNo string
-	City    string
-}
+import "time"
 
-// dto คือสิ่งที่อยากให้ user ดู
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+type LoginResponse struct {
+	CustomerID  int
+	FirstName   string
+	LastName    string
+	Email       string
+	PhoneNumber string
+	Address     string
+	Password    string `json:"-"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
