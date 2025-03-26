@@ -11,6 +11,6 @@ func StartServer(db *gorm.DB) {
 	router := gin.Default()
 	// load controller
 	LoginShowPersonController(router, db)
-	// PersonController(router)
+	AddProductController(router, db)
 	router.Run()
 }
