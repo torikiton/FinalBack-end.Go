@@ -55,6 +55,12 @@ func UpdateAddressUser(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
+	var customer model.Customer
+	if err := db.Where("customer_id = ?", req.CustomerID).First(&customer).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
 	if err := db.Model(&model.Customer{}).Where("customer_id = ?", req.CustomerID).Update("address", req.Address).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update address"})
 		return
