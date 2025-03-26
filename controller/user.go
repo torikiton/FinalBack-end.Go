@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -35,7 +36,8 @@ func loginUser(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	if req.Password != customer.Password {
+	err := bcrypt.CompareHashAndPassword([]byte(customer.Password), []byte(req.Password))
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}

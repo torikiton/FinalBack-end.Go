@@ -12,5 +12,6 @@ func StartServer(db *gorm.DB) {
 	// load controller
 	LoginShowPersonController(router, db)
 	AddProductController(router, db)
+	ShowCartController(router, db)
 	router.Run()
 }

@@ -22,3 +22,11 @@ type UpdateAddressRequest struct {
 	CustomerID int    `json:"customer_id" binding:"required"`
 	Address    string `json:"address" binding:"required"`
 }
+type RegisterRequest struct {
+	Email       string `json:"email" binding:"required"`
+	Password    string `json:"password" binding:"required"`
+	FirstName   string `json:"first_name" binding:"required"`
+	LastName    string `json:"last_name" binding:"required"`
+	Address     string `json:"address" binding:"required"`
+	PhoneNumber string `json:"phone_number" binding:"required"`
+}
