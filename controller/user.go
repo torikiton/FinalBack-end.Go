@@ -37,6 +37,6 @@ func loginUser(c *gin.Context, db *gorm.DB) {
 		return
 	}
 	response := dto.LoginResponse{}
-	copier.Copy(&customer, &response)
+	copier.Copy(&response, &customer)
 	c.JSON(http.StatusOK, response)
 }
