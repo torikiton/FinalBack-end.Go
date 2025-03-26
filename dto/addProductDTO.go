@@ -18,3 +18,8 @@ type CartDTO struct {
 	CartName string        `json:"cart_name"`
 	Items    []CartItemDTO `json:"items"`
 }
+type SearchProductRequest struct {
+	MinPrice    float64 `json:"MinPrice"`
+	MaxPrice    float64 `json:"MaxPrice"`
+	ProductName string  `json:"ProductName"`
+}

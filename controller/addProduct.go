@@ -10,11 +10,15 @@ import (
 )
 
 func AddProductController(router *gin.Engine, db *gorm.DB) {
-	routes := router.Group("/add-products")
+	routes := router.Group("/products")
 	{
-		routes.POST("/", func(c *gin.Context) {
+		routes.POST("/add-products", func(c *gin.Context) {
 			addProductToCart(c, db)
 		})
+		routes.GET("/search-products", func(c *gin.Context) {
+			searchProduct(c, db)
+		})
+
 	}
 }
 
@@ -25,18 +29,9 @@ func addProductToCart(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	// ค้นหาสินค้าจาก product_id
-	var product model.Product
-	if err := db.Where("product_id = ?", req.ProductID).First(&product).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
-		return
-	}
-
-	// ค้นหารถเข็นของลูกค้าโดยใช้ customer_id และ cart_name
 	var cart model.Cart
 	err := db.Where("customer_id = ? AND cart_name = ?", req.CustomerID, req.CartName).First(&cart).Error
 	if err != nil {
-		// ถ้าไม่พบรถเข็น, สร้างรถเข็นใหม่
 		cart = model.Cart{
 			CustomerID: req.CustomerID,
 			CartName:   req.CartName,
@@ -47,11 +42,9 @@ func addProductToCart(c *gin.Context, db *gorm.DB) {
 		}
 	}
 
-	// ตรวจสอบว่าในรถเข็นมีสินค้านั้นอยู่แล้วหรือไม่
 	var cartItem model.CartItem
 	err = db.Where("cart_id = ? AND product_id = ?", cart.CartID, req.ProductID).First(&cartItem).Error
 	if err == nil {
-		// หากพบสินค้าในรถเข็นแล้ว, เพิ่มจำนวนสินค้า
 		cartItem.Quantity += req.Quantity
 		if err := db.Save(&cartItem).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update cart item"})
@@ -61,7 +54,6 @@ func addProductToCart(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	// ถ้าไม่พบสินค้าภายในรถเข็น, เพิ่มสินค้าใหม่
 	cartItem = model.CartItem{
 		CartID:    cart.CartID,
 		ProductID: req.ProductID,
@@ -74,4 +66,31 @@ func addProductToCart(c *gin.Context, db *gorm.DB) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Product added to cart"})
+}
+func searchProduct(c *gin.Context, db *gorm.DB) {
+	var req dto.SearchProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var products []model.Product
+	query := db.Model(&model.Product{})
+
+	if req.ProductName != "" {
+		query = query.Where("product_name LIKE ?", "%"+req.ProductName+"%")
+	}
+	if req.MinPrice > 0 {
+		query = query.Where("CAST(price AS FLOAT) >= ?", req.MinPrice)
+	}
+	if req.MaxPrice > 0 {
+		query = query.Where("CAST(price AS FLOAT) <= ?", req.MaxPrice)
+	}
+
+	if err := query.Find(&products).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search products"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"products": products})
 }
