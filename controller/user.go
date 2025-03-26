@@ -16,6 +16,9 @@ func LoginShowPersonController(router *gin.Engine, db *gorm.DB) {
 		routes.POST("/login", func(c *gin.Context) {
 			loginUser(c, db)
 		})
+		routes.PUT("/update-address", func(c *gin.Context) {
+			UpdateAddressUser(c, db)
+		})
 	}
 }
 
@@ -39,4 +42,18 @@ func loginUser(c *gin.Context, db *gorm.DB) {
 	response := dto.LoginResponse{}
 	copier.Copy(&response, &customer)
 	c.JSON(http.StatusOK, response)
+}
+func UpdateAddressUser(c *gin.Context, db *gorm.DB) {
+	var req dto.UpdateAddressRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.Model(&model.Customer{}).Where("customer_id = ?", req.CustomerID).Update("address", req.Address).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update address"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Address updated successfully"})
 }

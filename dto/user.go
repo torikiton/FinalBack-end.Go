@@ -17,3 +17,8 @@ type LoginResponse struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+type UpdateAddressRequest struct {
+	CustomerID int    `json:"customer_id" binding:"required"`
+	Address    string `json:"address" binding:"required"`
+}
