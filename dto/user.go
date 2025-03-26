@@ -30,3 +30,9 @@ type RegisterRequest struct {
 	Address     string `json:"address" binding:"required"`
 	PhoneNumber string `json:"phone_number" binding:"required"`
 }
+
+type ChangePasswordRequest struct {
+	CustomerID  int    `json:"customer_id"`
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}

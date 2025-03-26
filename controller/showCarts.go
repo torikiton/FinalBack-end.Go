@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"go-gorm/dto"
 	"go-gorm/model"
 	"net/http"
 	"strconv"
@@ -19,28 +20,16 @@ func ShowCartController(router *gin.Engine, db *gorm.DB) {
 }
 
 func showCart(c *gin.Context, db *gorm.DB) {
-	// รับ customer_id จาก query parameters
 	customerID := c.DefaultQuery("customer_id", "")
 
-	// ค้นหารถเข็นทั้งหมดของลูกค้า
 	var carts []model.Cart
 	if err := db.Where("customer_id = ?", customerID).Find(&carts).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve carts"})
 		return
 	}
 
-	// สร้างรายการสำหรับแต่ละรถเข็น
-	var cartDetails []struct {
-		CartName string `json:"cart_name"`
-		Items    []struct {
-			ProductName string  `json:"product_name"`
-			Quantity    int     `json:"quantity"`
-			Price       float64 `json:"price"`
-			TotalPrice  float64 `json:"total_price"`
-		} `json:"items"`
-	}
+	var cartDetails []dto.CartDTO
 
-	// ดึงข้อมูลสินค้าและคำนวณราคาของแต่ละรายการในแต่ละรถเข็น
 	for _, cart := range carts {
 		var cartItems []model.CartItem
 		if err := db.Where("cart_id = ?", cart.CartID).Find(&cartItems).Error; err != nil {
@@ -48,12 +37,7 @@ func showCart(c *gin.Context, db *gorm.DB) {
 			return
 		}
 
-		var items []struct {
-			ProductName string  `json:"product_name"`
-			Quantity    int     `json:"quantity"`
-			Price       float64 `json:"price"`
-			TotalPrice  float64 `json:"total_price"`
-		}
+		var items []dto.CartItemDTO
 
 		for _, cartItem := range cartItems {
 			var product model.Product
@@ -62,7 +46,6 @@ func showCart(c *gin.Context, db *gorm.DB) {
 				return
 			}
 
-			// แปลง product.Price จาก string เป็น float64
 			productPrice, err := strconv.ParseFloat(product.Price, 64)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid product price"})
@@ -70,12 +53,7 @@ func showCart(c *gin.Context, db *gorm.DB) {
 			}
 
 			totalPrice := float64(cartItem.Quantity) * productPrice
-			items = append(items, struct {
-				ProductName string  `json:"product_name"`
-				Quantity    int     `json:"quantity"`
-				Price       float64 `json:"price"`
-				TotalPrice  float64 `json:"total_price"`
-			}{
+			items = append(items, dto.CartItemDTO{
 				ProductName: product.ProductName,
 				Quantity:    cartItem.Quantity,
 				Price:       productPrice,
@@ -83,20 +61,11 @@ func showCart(c *gin.Context, db *gorm.DB) {
 			})
 		}
 
-		cartDetails = append(cartDetails, struct {
-			CartName string `json:"cart_name"`
-			Items    []struct {
-				ProductName string  `json:"product_name"`
-				Quantity    int     `json:"quantity"`
-				Price       float64 `json:"price"`
-				TotalPrice  float64 `json:"total_price"`
-			} `json:"items"`
-		}{
+		cartDetails = append(cartDetails, dto.CartDTO{
 			CartName: cart.CartName,
 			Items:    items,
 		})
 	}
 
-	// ส่งข้อมูลรถเข็นและรายการสินค้ากลับไปยัง client
 	c.JSON(http.StatusOK, gin.H{"carts": cartDetails})
 }

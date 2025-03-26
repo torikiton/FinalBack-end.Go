@@ -6,3 +6,15 @@ type AddProductToCartRequest struct {
 	ProductID  int    `json:"product_id"`
 	Quantity   int    `json:"quantity"`
 }
+
+type CartItemDTO struct {
+	ProductName string  `json:"product_name"`
+	Quantity    int     `json:"quantity"`
+	Price       float64 `json:"price"`
+	TotalPrice  float64 `json:"total_price"`
+}
+
+type CartDTO struct {
+	CartName string        `json:"cart_name"`
+	Items    []CartItemDTO `json:"items"`
+}

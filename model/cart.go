@@ -17,13 +17,3 @@ type Cart struct {
 func (m *Cart) TableName() string {
 	return "cart"
 }
-
-type cartDetails struct {
-	CartName string `json:"cart_name"`
-	Items []struct {
-		ProductName string  `json:"product_name"`
-		Quantity    int     `json:"quantity"`
-		Price       float64 `json:"price"`
-		TotalPrice  float64 `json:"total_price"`
-	} `json:"items"`
-}
